@@ -18,15 +18,23 @@ class Blob(content: ByteArray) : GitObject("blob", content) {
     fun asString(): String = String(content)
 }
 
-data class TreeEntry(val mode: String, val name: String, val sha: String)
+data class TreeEntry(val name: String, val sha: String)
 
 class Tree(entries: List<TreeEntry>) : GitObject("tree", formatTree(entries)) {
 
     companion object {
         private fun formatTree(entries: List<TreeEntry>): ByteArray {
             val sorted = entries.sortedBy { it.name }
-            val content = sorted.joinToString("") { "${it.mode} ${it.name}\u0000${it.sha}" }
-            return content.toByteArray()
+            val content = sorted.joinToString("") { entry ->
+                val shaBytes = try {
+                    entry.sha.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+                } catch (e: NumberFormatException) {
+                    // Handle invalid hex strings gracefully
+                    ByteArray(20) { 0 }
+                }
+                "${entry.name}\u0000" + String(shaBytes, Charsets.ISO_8859_1)
+            }
+            return content.toByteArray(Charsets.ISO_8859_1)
         }
     }
 
@@ -36,19 +44,19 @@ class Tree(entries: List<TreeEntry>) : GitObject("tree", formatTree(entries)) {
         val entries = mutableListOf<TreeEntry>()
         var offset = 0
         while (offset < content.size) {
-            var space = offset
-            while (space < content.size && content[space] != ' '.code.toByte()) space++
-            if (space >= content.size) break
-
-            val mode = String(content, offset, space - offset)
-
-            var nullByte = space + 1
+            // Find null byte separator
+            var nullByte = offset
             while (nullByte < content.size && content[nullByte] != 0.toByte()) nullByte++
             if (nullByte >= content.size) break
 
-            val name = String(content, space + 1, nullByte - space - 1)
-            val sha = content.copyOfRange(nullByte + 1, nullByte + 21).joinToString("") { "%02x".format(it) }
-            entries.add(TreeEntry(mode, name, sha))
+            val name = String(content, offset, nullByte - offset)
+            
+            // Check if we have enough bytes for SHA (20 bytes = 40 hex chars)
+            if (nullByte + 20 > content.size) break
+            
+            val shaBytes = content.copyOfRange(nullByte + 1, nullByte + 21)
+            val sha = shaBytes.joinToString("") { "%02x".format(it) }
+            entries.add(TreeEntry(name, sha))
             offset = nullByte + 21
         }
         return entries

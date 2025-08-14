@@ -1,10 +1,12 @@
 package knit.demo
 
 import knit.Provides
+import knit.Singleton
 import java.util.concurrent.ConcurrentHashMap
 
 // Memory object storage implementation
 @Provides
+@Singleton
 class MemoryObjectStore {
     private val objects = ConcurrentHashMap<String, GitObject>()
     private val typeIndex = ConcurrentHashMap<String, MutableList<String>>()
@@ -96,7 +98,7 @@ class ObjectValidator(
 
     private fun validateTree(tree: Tree): Boolean {
         val entries = tree.getEntries()
-        return entries.isNotEmpty() && entries.all { entry ->
+        return entries.all { entry ->
             objectStore.exists(entry.sha)
         }
     }

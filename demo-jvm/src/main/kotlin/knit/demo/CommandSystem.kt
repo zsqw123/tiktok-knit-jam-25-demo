@@ -140,7 +140,7 @@ class CommitCommand(
 
     private fun buildTreeFromIndex(stagedFiles: Map<String, String>): Tree {
         val entries = stagedFiles.map { (path, sha) ->
-            TreeEntry("100644", path, sha)
+            TreeEntry(path, sha)
         }
         return Tree(entries)
     }

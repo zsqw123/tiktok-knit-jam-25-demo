@@ -2,7 +2,6 @@ package knit.demo
 
 import knit.Provides
 
-// Command registry - using Knit's multi-binding feature
 @Provides
 class CommandRegistry(
     val gitCommands: List<GitCommand>,

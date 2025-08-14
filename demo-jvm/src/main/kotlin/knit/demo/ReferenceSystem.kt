@@ -1,11 +1,13 @@
 package knit.demo
 
 import knit.Provides
+import knit.Singleton
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 // Reference management system - manages branches, tags, HEAD, etc.
 @Provides
+@Singleton
 class MemoryReferenceManager  {
     private val refs = ConcurrentHashMap<String, Ref>()
     private var headRef: Ref = Ref("HEAD", "")
@@ -100,6 +102,7 @@ class MemoryReferenceManager  {
 
 // Reference history tracker
 @Provides
+@Singleton
 class ReferenceHistoryTracker(
      private val refManager: MemoryReferenceManager,
      private val eventBus: EventBus
@@ -136,74 +139,5 @@ class ReferenceHistoryTracker(
     }
 }
 
-// Reference validation service
-
-class ReferenceValidator(
-     private val refManager: MemoryReferenceManager,
-     private val objectStore: MemoryObjectStore,
-     private val historyTracker: ReferenceHistoryTracker
-) {
-    
-    fun validateRefIntegrity(refName: String): Boolean {
-        val sha = refManager.resolveRef(refName) ?: return false
-        return objectStore.exists(sha)
-    }
-    
-    fun validateAllRefs(): Map<String, Boolean> {
-        return refManager.getAllRefs().associate { ref ->
-            ref.name to validateRefIntegrity(ref.name)
-        }
-    }
-    
-    fun findBrokenRefs(): List<String> {
-        return refManager.getAllRefs()
-            .filter { !validateRefIntegrity(it.name) }
-            .map { it.name }
-    }
-    
-    fun findDanglingCommits(): List<String> {
-        val allCommits = objectStore.getObjectsByType("commit").map { it as Commit }
-        val referencedCommits = refManager.getAllRefs()
-            .mapNotNull { ref -> refManager.resolveRef(ref.name) }
-        
-        return allCommits.filter { it.sha !in referencedCommits }.map { it.sha }
-    }
-    
-    fun getRefReachability(refName: String): RefReachability {
-        val sha = refManager.resolveRef(refName) ?: return RefReachability(refName, emptyList(), emptyList())
-        
-        val reachable = mutableSetOf<String>()
-        val queue = mutableListOf(sha)
-        
-        while (queue.isNotEmpty()) {
-            val current = queue.removeFirst()
-            if (current in reachable) continue
-            reachable.add(current)
-            
-            val obj = objectStore.retrieve(current) ?: continue
-            when (obj) {
-                is Commit -> {
-                    queue.add(obj.getTreeSha())
-                    queue.addAll(obj.getParentShas())
-                }
-                is Tree -> {
-                    obj.getEntries().forEach { entry ->
-                        queue.add(entry.sha)
-                    }
-                }
-                else -> {}
-            }
-        }
-        
-        val unreachable = objectStore.getAllObjects().filter { it !in reachable }
-        return RefReachability(refName, reachable.toList(), unreachable)
-    }
-}
-
-data class RefReachability(
-    val refName: String,
-    val reachableObjects: List<String>,
-    val unreachableObjects: List<String>
-)
 
 // Reference events are defined in EventSystem.kt
