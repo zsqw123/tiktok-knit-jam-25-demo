@@ -1,12 +1,10 @@
 package knit.demo
 
 import knit.Provides
-import knit.Singleton
 import java.util.concurrent.ConcurrentHashMap
 
 // Memory object storage implementation
 @Provides
-@Singleton
 class MemoryObjectStore {
     private val objects = ConcurrentHashMap<String, GitObject>()
     private val typeIndex = ConcurrentHashMap<String, MutableList<String>>()

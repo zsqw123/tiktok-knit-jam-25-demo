@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 // Reference management system - manages branches, tags, HEAD, etc.
 @Provides
-@Singleton
 class MemoryReferenceManager  {
     private val refs = ConcurrentHashMap<String, Ref>()
     private var headRef: Ref = Ref("HEAD", "")

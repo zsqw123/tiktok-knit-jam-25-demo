@@ -1,11 +1,9 @@
 package knit.demo
 
 import knit.Provides
-import knit.Singleton
 
 // Memory file system implementation
 @Provides
-@Singleton
 class MemoryFileSystem {
     private val root: DirectoryNode = DirectoryNode("", "/")
     private var currentDir: DirectoryNode = root

@@ -1,22 +1,24 @@
 package knit.demo
 
+import knit.Component
 import knit.Provides
+import knit.di
 import java.util.Scanner
 
 // CLI interactive system
 @Provides
 class SampleCli(
-    private val commandRegistry: CommandRegistry,
-    private val eventBus: EventBus,
-    private val auditLogger: AuditLogger,
-    private val performanceMonitor: PerformanceMonitor,
-    private val fileSystem: MemoryFileSystem,
-    private val refManager: MemoryReferenceManager,
-    private val objectStore: MemoryObjectStore,
-    private val objectGraphAnalyzer: ObjectGraphAnalyzer
+    @Component
+    val storeComponent: StoreComponent,
+    @Component
+    val monitorComponent: MonitorComponent,
 ) {
     private val scanner = Scanner(System.`in`)
     private var running = true
+
+    private val fileSystem: MemoryFileSystem by di
+    private val refManager: MemoryReferenceManager by di
+    private val commandRegistry: CommandRegistry by di
 
     fun start() {
         while (running) {
@@ -47,8 +49,7 @@ class SampleCli(
 
     private fun executeCommand(command: String, args: List<String>) {
         try {
-            val result = commandRegistry.executeCommand(command, args)
-            when (result) {
+            when (val result = commandRegistry.executeCommand(command, args)) {
                 is CommandResult.Success -> println(result.message)
                 is CommandResult.Error -> println(result.message)
                 is CommandResult.Info -> println(result.data)

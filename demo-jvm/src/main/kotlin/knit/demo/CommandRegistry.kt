@@ -4,8 +4,8 @@ import knit.Provides
 
 @Provides
 class CommandRegistry(
-    val gitCommands: List<GitCommand>,
-    val basicCommands: List<BasicCommand>,
+    private val gitCommands: List<GitCommand>,
+    private val basicCommands: List<BasicCommand>,
 ) {
     private val commandsMap = mutableMapOf<String, Any>()
     
@@ -26,9 +26,7 @@ class CommandRegistry(
     val allCommands: Set<String> = commandsMap.keys
     
     fun executeCommand(commandName: String, args: List<String>): CommandResult {
-        val command = getCommand(commandName)
-        
-        return when (command) {
+        return when (val command = getCommand(commandName)) {
             is GitCommand -> command.execute(args)
             is BasicCommand -> command.execute(args)
             else -> CommandResult.Error("Unknown command: $commandName")
