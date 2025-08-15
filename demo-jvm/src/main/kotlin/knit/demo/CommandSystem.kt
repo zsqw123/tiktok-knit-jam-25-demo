@@ -2,6 +2,7 @@ package knit.demo
 
 import knit.IntoList
 import knit.Provides
+import knit.Singleton
 import java.time.Instant
 
 // Command interface
@@ -19,6 +20,7 @@ sealed class CommandResult {
 
 // Staging area management
 @Provides
+@Singleton
 class StagingArea {
     private val stagedFiles = mutableMapOf<String, String>() // path -> blob sha
 
