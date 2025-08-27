@@ -5,7 +5,7 @@
 ### 1. from shell
 
 1. Environment requirements
-    - JDK 11 (it might work with higher version, but not tested), make sure `JAVA_HOME` is set
+    - JDK 11 ~ 21 (JDK 11 is recommended), make sure `JAVA_HOME` is set
 
 2. Build the demo with Knit (ensure run this command in the root directory of this project)
    ```bash
@@ -25,7 +25,7 @@
 
 1. Open this gradle project in IDEA
    - then open `Settings | Build, Execution, Deployment | Build Tools | Gradle`, make sure `Gradle JVM` is set to JDK
-     11 (download JDK here if needed)
+     11 ~ 21 (download JDK here if needed, 11 is recommended)
    - then click `Apply` and `OK`
 2. Run the demo
    - I already created a run configuration for you, just select `RunDemo` and run it.
