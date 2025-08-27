@@ -8,10 +8,8 @@ import java.util.Scanner
 // CLI interactive system
 @Provides
 class SampleCli(
-    @Component
-    val storeComponent: StoreComponent,
-    @Component
-    val monitorComponent: MonitorComponent,
+    @Component val storeComponent: MemoryStoreComponent,
+    @Component val monitorComponent: MonitorComponent,
 ) {
     private val scanner = Scanner(System.`in`)
     private var running = true
